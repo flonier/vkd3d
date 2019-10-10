@@ -4343,10 +4343,6 @@ static void vkd3d_dxbc_compiler_emit_output(struct vkd3d_dxbc_compiler *compiler
             entry = rb_get(&compiler->symbol_table, &reg_symbol);
         }
     }
-    else if ((entry = rb_get(&compiler->symbol_table, &reg_symbol)))
-    {
-        id = RB_ENTRY_VALUE(entry, const struct vkd3d_symbol, entry)->id;
-    }
     else
     {
         if (builtin)
@@ -4393,7 +4389,7 @@ static void vkd3d_dxbc_compiler_emit_output(struct vkd3d_dxbc_compiler *compiler
     if (use_private_variable)
         storage_class = SpvStorageClassPrivate;
 
-    if (entry)
+    if ((entry = rb_get(&compiler->symbol_table, &reg_symbol)))
         var_id = RB_ENTRY_VALUE(entry, const struct vkd3d_symbol, entry)->id;
     else if (!use_private_variable)
         var_id = id;
