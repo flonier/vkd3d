@@ -4187,6 +4187,35 @@ static void calculate_clip_or_cull_distance_mask(const struct vkd3d_shader_signa
     *mask |= (e->mask & VKD3DSP_WRITEMASK_ALL) << (VKD3D_VEC4_SIZE * e->semantic_index);
 }
 
+static uint32_t calculate_sysval_array_mask(struct vkd3d_dxbc_compiler *compiler,
+        const struct vkd3d_shader_signature *signature, enum vkd3d_shader_input_sysval_semantic sysval)
+{
+    const struct vkd3d_shader_signature_element *e;
+    const struct vkd3d_spirv_builtin *sig_builtin;
+    const struct vkd3d_spirv_builtin *builtin;
+    uint32_t signature_idx, mask = 0;
+
+    builtin = get_spirv_builtin_for_sysval(compiler, sysval);
+
+    if (!builtin)
+    {
+        FIXME("Unhandled sysval %#x.\n", sysval);
+        return 0;
+    }
+
+    for (signature_idx = 0; signature_idx < signature->element_count; signature_idx++)
+    {
+        e = &signature->elements[signature_idx];
+
+        sig_builtin = get_spirv_builtin_for_sysval(compiler, vkd3d_siv_from_sysval_indexed(e->sysval_semantic, e->semantic_index));
+
+        if (sig_builtin && sig_builtin->spirv_builtin == builtin->spirv_builtin)
+            mask |= (e->mask & VKD3DSP_WRITEMASK_ALL) << (VKD3D_VEC4_SIZE * sig_builtin->member_idx);
+    }
+
+    return mask;
+}
+
 /* Emits arrayed SPIR-V built-in variables. */
 static void vkd3d_dxbc_compiler_emit_shader_signature_outputs(struct vkd3d_dxbc_compiler *compiler)
 {
