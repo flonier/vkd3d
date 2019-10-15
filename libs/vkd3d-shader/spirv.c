@@ -4476,6 +4476,25 @@ static void vkd3d_dxbc_compiler_emit_shader_phase_output(struct vkd3d_dxbc_compi
     vkd3d_dxbc_compiler_put_symbol(compiler, &reg_symbol);
 }
 
+static uint32_t vkd3d_dxbc_compiler_get_output_array_index(struct vkd3d_dxbc_compiler *compiler,
+        const struct vkd3d_shader_signature_element *e)
+{
+    enum vkd3d_shader_input_sysval_semantic sysval;
+    const struct vkd3d_spirv_builtin *builtin;
+
+    sysval = vkd3d_siv_from_sysval_indexed(e->sysval_semantic, e->semantic_index);
+    builtin = get_spirv_builtin_for_sysval(compiler, sysval);
+
+    switch (sysval)
+    {
+        case VKD3D_SIV_LINE_DETAIL_TESS_FACTOR:
+        case VKD3D_SIV_LINE_DENSITY_TESS_FACTOR:
+            return builtin->member_idx;
+        default:
+            return e->semantic_index;
+    }
+}
+
 static void vkd3d_dxbc_compiler_emit_store_shader_output(struct vkd3d_dxbc_compiler *compiler,
         const struct vkd3d_shader_signature_element *output,
         const struct vkd3d_shader_output_info *output_info,
@@ -4484,7 +4503,7 @@ static void vkd3d_dxbc_compiler_emit_store_shader_output(struct vkd3d_dxbc_compi
     unsigned int dst_write_mask, use_mask, uninit_mask, swizzle, mask;
     struct vkd3d_spirv_builder *builder = &compiler->spirv_builder;
     uint32_t type_id, zero_id, ptr_type_id, chain_id, object_id;
-    unsigned int i, index;
+    unsigned int i, index, array_idx;
     uint32_t output_id;
 
     dst_write_mask = output->mask & 0xff;
@@ -4537,7 +4556,8 @@ static void vkd3d_dxbc_compiler_emit_store_shader_output(struct vkd3d_dxbc_compi
     type_id = vkd3d_spirv_get_type_id(builder, output_info->component_type, 1);
     ptr_type_id = vkd3d_spirv_get_op_type_pointer(builder, SpvStorageClassOutput, type_id);
     mask = output_info->array_element_mask;
-    mask &= (1u << (output->semantic_index * VKD3D_VEC4_SIZE)) - 1;
+    array_idx = vkd3d_dxbc_compiler_get_output_array_index(compiler, output);
+    mask &= (1u << (array_idx * VKD3D_VEC4_SIZE)) - 1;
     for (i = 0, index = vkd3d_popcount(mask); i < VKD3D_VEC4_SIZE; ++i)
     {
         if (!(write_mask & (VKD3DSP_WRITEMASK_0 << i)))
