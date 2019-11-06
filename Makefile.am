@@ -102,12 +102,14 @@ libvkd3d_la_SOURCES = \
 	include/vkd3d_unknown.idl \
 	libs/vkd3d/command.c \
 	libs/vkd3d/device.c \
+	libs/vkd3d/meta.c \
 	libs/vkd3d/resource.c \
 	libs/vkd3d/state.c \
 	libs/vkd3d/utils.c \
 	libs/vkd3d/vkd3d.map \
 	libs/vkd3d/vkd3d_main.c \
 	libs/vkd3d/vkd3d_private.h \
+	libs/vkd3d/vkd3d_spv_shaders.h \
 	libs/vkd3d/vulkan_procs.h \
 	libs/vkd3d_version.c
 libvkd3d_la_LDFLAGS = $(AM_LDFLAGS) -version-info 2:0:1

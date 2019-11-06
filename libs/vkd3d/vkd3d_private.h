@@ -1287,4 +1287,45 @@ static inline void vk_prepend_struct(void *header, void *structure)
     vk_header->pNext = vk_structure;
 }
 
+/* meta operations */
+struct vkd3d_meta_clear_uav_pipelines
+{
+    VkPipeline vk_pipeline_clear_buffer;
+    VkPipeline vk_pipeline_clear_image_1d;
+    VkPipeline vk_pipeline_clear_image_2d;
+    VkPipeline vk_pipeline_clear_image_3d;
+    VkPipeline vk_pipeline_clear_image_1d_array;
+    VkPipeline vk_pipeline_clear_image_2d_array;
+};
+
+struct vkd3d_meta_clear_uav_args
+{
+    VkClearColorValue clear_color;
+    VkOffset3D offset;
+    uint32_t pad_1;
+    VkExtent3D extent;
+    uint32_t pad_2;
+};
+
+struct vkd3d_meta_clear_uav_ops
+{
+    VkDescriptorSetLayout vk_set_layout_buffer;
+    VkDescriptorSetLayout vk_set_layout_image;
+
+    VkPipelineLayout vk_pipeline_layout_buffer;
+    VkPipelineLayout vk_pipeline_layout_image;
+
+    struct vkd3d_meta_clear_uav_pipelines clear_float;
+    struct vkd3d_meta_clear_uav_pipelines clear_uint;
+};
+
+HRESULT vkd3d_init_meta_clear_uav_ops(struct vkd3d_meta_clear_uav_ops *meta_clear_uav_ops,
+        struct d3d12_device *device) DECLSPEC_HIDDEN;
+void vkd3d_destroy_meta_clear_uav_ops(struct vkd3d_meta_clear_uav_ops *meta_clear_uav_ops,
+        struct d3d12_device *device) DECLSPEC_HIDDEN;
+VkPipeline vkd3d_meta_clear_uav_ops_get_clear_buffer_pipeline(const struct vkd3d_meta_clear_uav_ops *meta_clear_uav_ops,
+        bool as_uint) DECLSPEC_HIDDEN;
+VkPipeline vkd3d_meta_clear_uav_ops_get_clear_image_pipeline(const struct vkd3d_meta_clear_uav_ops *meta_clear_uav_ops,
+        VkImageViewType image_view_type, bool as_uint) DECLSPEC_HIDDEN;
+
 #endif  /* __VKD3D_PRIVATE_H */
